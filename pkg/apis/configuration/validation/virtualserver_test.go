@@ -2498,6 +2498,65 @@ func TestValidateVirtualServerRouteSubroutes(t *testing.T) {
 			upstreamNames: map[string]sets.Empty{
 				"test": {},
 			},
+			vsPath: "/",
+			msg:    "valid default prefix vs path with regex subroute path",
+		},
+		{
+			routes: []v1.Route{
+				{
+					Path: "=/abc",
+					Action: &v1.Action{
+						Pass: "test",
+					},
+				},
+			},
+			upstreamNames: map[string]sets.Empty{
+				"test": {},
+			},
+			vsPath: "/",
+			msg:    "valid default prefix vs path with exact subroute path",
+		},
+		{
+			routes: []v1.Route{
+				{
+					Path: "/abc",
+					Action: &v1.Action{
+						Pass: "test1",
+					},
+				},
+				{
+					Path: "=/def",
+					Action: &v1.Action{
+						Pass: "test2",
+					},
+				},
+				{
+					Path: "~ /regex1/?(.*)",
+					Action: &v1.Action{
+						Pass: "test3",
+					},
+				},
+			},
+			upstreamNames: map[string]sets.Empty{
+				"test1": {},
+				"test2": {},
+				"test3": {},
+			},
+			vsPath: "/",
+			msg:    "valid default prefix vs path with prefix, exact, and regex subroute paths",
+		},
+		{
+			routes: []v1.Route{
+				{
+					Path: "~ /regex1/?(.*)",
+					Action: &v1.Action{
+						Pass: "test",
+					},
+				},
+			},
+			upstreamNames: map[string]sets.Empty{
+				"test": {},
+			},
 			vsPath: "~ /regex1/?(.*)",
 			msg:    "valid regex route",
 		},
