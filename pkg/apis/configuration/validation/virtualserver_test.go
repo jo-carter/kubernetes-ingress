@@ -2563,6 +2563,42 @@ func TestValidateVirtualServerRouteSubroutes(t *testing.T) {
 		{
 			routes: []v1.Route{
 				{
+					Path: "~/test/(abc|def)",
+					Action: &v1.Action{
+						Pass: "test",
+					},
+				},
+			},
+			upstreamNames: map[string]sets.Empty{
+				"test": {},
+			},
+			vsPath: "~/test",
+			msg:    "valid regex route",
+		},
+		{
+			routes: []v1.Route{
+				{
+					Path: "~/test/(abc|def)",
+					Action: &v1.Action{
+						Pass: "test",
+					},
+				},
+				{
+					Path: "~/test/anotherpath/(.*)",
+					Action: &v1.Action{
+						Pass: "test",
+					},
+				},
+			},
+			upstreamNames: map[string]sets.Empty{
+				"test": {},
+			},
+			vsPath: "~/test",
+			msg:    "valid regex route with 2 matching regex subroute paths",
+		},
+		{
+			routes: []v1.Route{
+				{
 					Path: "=/test",
 					Action: &v1.Action{
 						Pass: "test",
@@ -2724,6 +2760,43 @@ func TestValidateVirtualServerRouteSubroutesFails(t *testing.T) {
 			},
 			vsPath: "~/test",
 			msg:    "regex vs path with exact subroute path",
+		},
+		{
+			routes: []v1.Route{
+				{
+					Path: "~/abc",
+					Action: &v1.Action{
+						Pass: "test-1",
+					},
+				},
+			},
+			upstreamNames: map[string]sets.Empty{
+				"test-1": {},
+			},
+			vsPath: "~/test",
+			msg:    "regex vs path with mismatching regex path",
+		},
+		{
+			routes: []v1.Route{
+				{
+					Path: "~/abc",
+					Action: &v1.Action{
+						Pass: "test-1",
+					},
+				},
+				{
+					Path: "~/test/(abc|def)",
+					Action: &v1.Action{
+						Pass: "test-1",
+					},
+				},
+
+			},
+			upstreamNames: map[string]sets.Empty{
+				"test-1": {},
+			},
+			vsPath: "~/test",
+			msg:    "regex prefix vs path with matching and mismatching regex path",
 		},
 		{
 			routes: []v1.Route{
@@ -3529,7 +3602,7 @@ func TestValidateRedirectStatusCodeFails(t *testing.T) {
 	}
 }
 
-func TestIsRegexOrExactMatch(t *testing.T) {
+func TestIsExactMatch(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		path     string
@@ -3541,7 +3614,7 @@ func TestIsRegexOrExactMatch(t *testing.T) {
 		},
 		{
 			path:     "~ .*\\.jpg",
-			expected: true,
+			expected: false,
 		},
 		{
 			path:     "=/exact/match",
@@ -3550,9 +3623,9 @@ func TestIsRegexOrExactMatch(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result := isRegexOrExactMatch(test.path)
+		result := isExactMatch(test.path)
 		if result != test.expected {
-			t.Errorf("isRegexOrExactMatch(%v) returned %v but expected %v", test.path, result, test.expected)
+			t.Errorf("isExactMatch(%v) returned %v but expected %v", test.path, result, test.expected)
 		}
 	}
 }
